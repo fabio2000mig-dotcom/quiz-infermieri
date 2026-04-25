@@ -73,13 +73,20 @@ def reset():
 # START SCREEN
 # =====================
 if not st.session_state.started:
-   col1, col2 = st.columns([1, 4])
+ col1, col2 = st.columns([1, 5])
 
 with col1:
-    st.image("logo.png", width=80)
+    st.image("logo.png", width=70)
 
 with col2:
-    st.title("Postofissatore")
+    st.markdown(
+        "<h1 style='margin-bottom:0;'>Postofissatore</h1>",
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        "<p style='margin-top:0;'>Il posto fisso è sacro!</p>",
+        unsafe_allow_html=True
+    )
 
     mode = st.radio("Modalità", ["libera", "tempo"])
     minutes = st.number_input("Durata (minuti)", 1, 180, 10)
