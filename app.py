@@ -76,7 +76,7 @@ if not st.session_state.started:
  col1, col2 = st.columns([1, 5])
 
 with col1:
-    st.image("psf.png", width=100)
+    st.image("psf.png", width=150)
 
 with col2:
     st.markdown(
