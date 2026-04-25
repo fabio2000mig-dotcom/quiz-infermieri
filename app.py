@@ -73,20 +73,20 @@ def reset():
 # START SCREEN
 # =====================
 if not st.session_state.started:
- col1, col2 = st.columns([1, 5])
+    col1, col2 = st.columns([1, 5])
 
-with col1:
-    st.image("psf.png", width=150)
+    with col1:
+        st.image("psf.png", width=150)
 
-with col2:
-    st.markdown(
-        "<h1 style='margin-bottom:0;'>Postofissatore</h1>",
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        "<p style='margin-top:0;'>Il posto fisso è sacro!</p>",
-        unsafe_allow_html=True
-    )
+    with col2:
+        st.markdown(
+            "<h1 style='margin-bottom:0;'>Postofissatore</h1>",
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            "<p style='margin-top:0;'>Il posto fisso è sacro!</p>",
+            unsafe_allow_html=True
+        )
 
     mode = st.radio("Modalità", ["libera", "tempo"])
     minutes = st.number_input("Durata (minuti)", 1, 180, 10)
@@ -96,11 +96,9 @@ with col2:
         st.session_state.started = True
         st.session_state.finished = False
 
-        # 🔥 DOMANDE RANDOM SOLO UNA VOLTA
         questions = df.sample(num).to_dict("records")
         st.session_state.questions = questions
 
-        # 🔥 ORDINE RISPOSTE FISSO
         options_map = {}
         for i, q in enumerate(questions):
             opts = [
