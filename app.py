@@ -5,109 +5,87 @@ import time
 
 FILE = "quiz_infermieri.xlsx"
 
-st.set_page_config(
-    page_title="Postofissatore",
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
+st.set_page_config(page_title="Postofissatore", layout="centered")
 
 # =====================
-# STILE MOBILE
+# STILE
 # =====================
 st.markdown("""
 <style>
-body {background-color: #ffffff;}
-.block-container {padding-top: 1rem;}
-
 .card {
     background: #f8f9fb;
     padding: 15px;
-    border-radius: 12px;
+    border-radius: 10px;
     margin-bottom: 15px;
     border: 1px solid #e5e7eb;
 }
-
 .question {
     font-size: 18px;
-    font-weight: 600;
-    color: #1f2937;
+    font-weight: bold;
 }
-
 .correct {color: green; font-weight: bold;}
 .wrong {color: red; font-weight: bold;}
-
-.big-btn button {
-    width: 100%;
-    height: 50px;
-    font-size: 18px;
-    border-radius: 10px;
-}
 </style>
 """, unsafe_allow_html=True)
 
 # =====================
-# LOAD DATA
+# DATA
 # =====================
 @st.cache_data
-def load_data():
+def load():
     return pd.read_excel(FILE)
 
-df = load_data()
+df = load()
 
 # =====================
-# SESSION STATE
+# STATE
 # =====================
-if "started" not in st.session_state:
-    st.session_state.started = False
+def init():
+    for k, v in {
+        "started": False,
+        "finished": False,
+        "questions": [],
+        "answers": {},
+        "mode": "libera",
+        "limit": None,
+        "num": 30
+    }.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
 
-if "finished" not in st.session_state:
-    st.session_state.finished = False
+init()
 
-if "questions" not in st.session_state:
-    st.session_state.questions = []
-
-if "answers" not in st.session_state:
-    st.session_state.answers = {}
-
-# =====================
-# RESET QUIZ
-# =====================
-def reset_quiz():
-    st.session_state.started = False
-    st.session_state.finished = False
-    st.session_state.questions = []
-    st.session_state.answers = {}
+def reset():
+    for k in ["started","finished","questions","answers"]:
+        st.session_state[k] = False if k in ["started","finished"] else {}
 
 # =====================
-# SCHERMATA INIZIALE
+# START SCREEN
 # =====================
 if not st.session_state.started:
     st.title("📚 Postofissatore")
     st.subheader("Il posto fisso è sacro!")
 
-    mode = st.radio("Modalità", ["Libera", "A tempo"])
+    mode = st.radio("Modalità", ["libera", "tempo"])
+    minutes = st.number_input("Durata (minuti)", 1, 180, 10)
+    num = st.number_input("Numero domande", 1, len(df), 30)
 
-    minutes = 10
-    if mode == "A tempo":
-        minutes = st.number_input("Durata (minuti)", 1, 180, 10)
-
-    num_domande = st.number_input("Numero domande", 1, len(df), 30)
-
-    if st.button("🚀 Avvia"):
+    if st.button("Avvia"):
         st.session_state.started = True
         st.session_state.finished = False
-        st.session_state.questions = df.sample(num_domande).to_dict("records")
+        st.session_state.questions = df.sample(num).to_dict("records")
         st.session_state.answers = {}
+        st.session_state.mode = mode
+        st.session_state.limit = minutes * 60 if mode == "tempo" else None
         st.session_state.start_time = time.time()
-        st.session_state.limit = minutes * 60 if mode == "A tempo" else None
-        st.session_state.num_domande = num_domande
+        st.session_state.num = num
 
     st.stop()
 
 # =====================
 # TIMER
 # =====================
-if st.session_state.limit:
+if st.session_state.mode == "tempo" and not st.session_state.finished:
     elapsed = time.time() - st.session_state.start_time
     remaining = int(st.session_state.limit - elapsed)
 
@@ -115,20 +93,16 @@ if st.session_state.limit:
         st.warning("⏰ Tempo scaduto!")
         st.session_state.finished = True
     else:
-        st.info(f"⏳ Tempo: {remaining//60}:{remaining%60:02}")
+        st.info(f"⏳ Tempo: {remaining//60:02}:{remaining%60:02}")
 
 # =====================
-# QUIZ
+# QUIZ (NO LIVE UPDATE)
 # =====================
 if not st.session_state.finished:
     st.title("📝 Quiz")
 
-    total = st.session_state.num_domande
-    answered = len([v for v in st.session_state.answers.values() if v])
-    st.progress(answered / total)
-
     for i, q in enumerate(st.session_state.questions):
-        st.markdown(f'<div class="card">', unsafe_allow_html=True)
+        st.markdown('<div class="card">', unsafe_allow_html=True)
 
         st.markdown(f'<div class="question">{i+1}) {q["Domanda"]}</div>', unsafe_allow_html=True)
 
@@ -139,13 +113,14 @@ if not st.session_state.finished:
         ]
         random.shuffle(options)
 
-        selected = st.radio(
+        choice = st.radio(
             "Seleziona risposta",
-            options,
+            [""] + options,  # 👈 permette stato iniziale vuoto
             key=f"q_{i}"
         )
 
-        st.session_state.answers[i] = selected
+        if choice != "":
+            st.session_state.answers[i] = choice
 
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -168,17 +143,20 @@ for i, q in enumerate(st.session_state.questions):
     if user == correct:
         score += 1
 
-st.success(f"Punteggio: {score}/{st.session_state.num_domande}")
+st.success(f"Punteggio: {score}/{st.session_state.num}")
 
 # =====================
 # DETTAGLIO RISPOSTE
 # =====================
-st.subheader("📋 Dettaglio")
+st.subheader("📋 Dettaglio risposte")
 
 for i, q in enumerate(st.session_state.questions):
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
     st.markdown(f'<div class="question">{i+1}) {q["Domanda"]}</div>', unsafe_allow_html=True)
+
+    user = st.session_state.answers.get(i)
+    correct = q["Risposta A"]
 
     options = [
         q["Risposta A"],
@@ -186,10 +164,8 @@ for i, q in enumerate(st.session_state.questions):
         q["Risposta C"]
     ]
 
-    user = st.session_state.answers.get(i)
-
     for opt in options:
-        if opt == q["Risposta A"]:
+        if opt == correct:
             st.markdown(f"<span class='correct'>✔️ {opt}</span>", unsafe_allow_html=True)
         elif opt == user:
             st.markdown(f"<span class='wrong'>❌ {opt}</span>", unsafe_allow_html=True)
@@ -202,4 +178,4 @@ for i, q in enumerate(st.session_state.questions):
 # RIAVVIO
 # =====================
 if st.button("🔄 Nuova prova"):
-    reset_quiz()
+    reset()
