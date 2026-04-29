@@ -181,7 +181,7 @@ for i, q in enumerate(st.session_state.questions):
 # SELEZIONE IMMAGINE + TESTO
 if score < 23:
     img = "poco.png"
-    msg = "Parliamone! Anche un parti time va bene!"
+    msg = "Parliamone! Anche un part time va bene!"
 elif 23 <= score <= 26:
     img = "medio.png"
     msg = "Meh, Meh"
