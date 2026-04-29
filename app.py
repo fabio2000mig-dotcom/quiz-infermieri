@@ -51,7 +51,7 @@ def init():
         "mode": "libera",
         "limit": None,
         "num": 30,
-        "options_map": {}  # 🔥 fondamentale
+        "options_map": {}
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -147,12 +147,11 @@ if not st.session_state.finished:
 
         options = st.session_state.options_map[i]
 
-        # 🔥 RADIO CON STATO VUOTO
         choice = st.radio(
             "",
             options,
             key=f"q_{i}",
-            index=None  # 👈 fondamentale
+            index=None
         )
 
         if choice is not None:
@@ -179,7 +178,26 @@ for i, q in enumerate(st.session_state.questions):
     if user == correct:
         score += 1
 
-st.success(f"Punteggio: {score}/{st.session_state.num}")
+# SELEZIONE IMMAGINE + TESTO
+if score < 23:
+    img = "poco.png"
+    msg = "Parliamone! Anche un parti time va bene!"
+elif 23 <= score <= 26:
+    img = "medio.png"
+    msg = "Meh, Meh"
+else:
+    img = "tanto.png"
+    msg = "Come mi rilassa!"
+
+# LAYOUT AFFIANCATO
+col1, col2 = st.columns([2, 1])
+
+with col1:
+    st.success(f"Punteggio: {score}/{st.session_state.num}")
+    st.markdown(f"**{msg}**")
+
+with col2:
+    st.image(img, width=120)
 
 # =====================
 # DETTAGLIO
@@ -207,6 +225,16 @@ for i, q in enumerate(st.session_state.questions):
             st.write(opt)
 
     st.markdown('</div>', unsafe_allow_html=True)
+
+# =====================
+# RISULTATO FINALE
+# =====================
+st.markdown("---")
+st.subheader("🏁 Risultato finale")
+
+st.success(f"Punteggio finale: {score}/{st.session_state.num}")
+st.markdown(f"**{msg}**")
+st.image(img, width=150)
 
 # =====================
 # RIAVVIO
