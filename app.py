@@ -98,41 +98,22 @@ if not st.session_state.started:
         st.image("psf.png", width=150)
 
     with col2:
-        st.markdown(
-            "<h1 style='margin-bottom:0;'>Postofissatore</h1>",
-            unsafe_allow_html=True
-        )
+        st.markdown("<h1 style='margin-bottom:0;'>Postofissatore</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='margin-top:0;'>Il posto fisso è sacro!</p>", unsafe_allow_html=True)
 
-        st.markdown(
-            "<p style='margin-top:0;'>Il posto fisso è sacro!</p>",
-            unsafe_allow_html=True
-        )
-
-    mode = st.radio(
-        "Modalità",
-        ["libera", "tempo", "studio"]
-    )
+    mode = st.radio("Modalità", ["libera", "tempo", "studio"])
 
     study_mode = ""
 
     if mode == "studio":
-
         study_mode = st.radio(
             "Tipo modalità studio",
-            [
-                "Modalità Studio - Lettura",
-                "Modalità Studio - Quiz"
-            ]
+            ["Modalità Studio - Lettura", "Modalità Studio - Quiz"]
         )
 
     if mode in ["libera", "tempo"]:
         minutes = st.number_input("Durata (minuti)", 1, 180, 10)
-        num = st.number_input(
-            "Numero domande",
-            1,
-            len(df),
-            30
-        )
+        num = st.number_input("Numero domande", 1, len(df), 30)
     else:
         minutes = 0
         num = len(df)
@@ -144,11 +125,8 @@ if not st.session_state.started:
         st.session_state.current_question = 0
         st.session_state.checked = False
 
-        # Modalità studio
         if mode == "studio":
             questions = df.to_dict("records")
-
-        # Modalità classiche
         else:
             questions = df.sample(num).to_dict("records")
 
@@ -164,10 +142,7 @@ if not st.session_state.started:
                 q["Risposta C"]
             ]
 
-            if not (
-                mode == "studio"
-                and study_mode == "Modalità Studio - Lettura"
-            ):
+            if not (mode == "studio" and study_mode == "Modalità Studio - Lettura"):
                 random.shuffle(opts)
 
             options_map[i] = opts
@@ -176,13 +151,12 @@ if not st.session_state.started:
         st.session_state.answers = {}
         st.session_state.mode = mode
         st.session_state.study_mode = study_mode
-        st.session_state.limit = (
-            minutes * 60 if mode == "tempo" else None
-        )
+        st.session_state.limit = minutes * 60 if mode == "tempo" else None
         st.session_state.start_time = time.time()
         st.session_state.num = num
 
     st.stop()
+
 # =====================
 # MODALITA' STUDIO
 # =====================
@@ -192,14 +166,11 @@ if st.session_state.mode == "studio":
 
     totale = len(st.session_state.questions)
 
-    # =====================
-    # RICERCA DOMANDA
-    # =====================
     ricerca = st.number_input(
         "Vai alla domanda numero",
-        min_value=1,
-        max_value=totale,
-        value=st.session_state.current_question + 1
+        1,
+        totale,
+        st.session_state.current_question + 1
     )
 
     if ricerca != st.session_state.current_question + 1:
@@ -210,19 +181,19 @@ if st.session_state.mode == "studio":
     q = st.session_state.questions[idx]
 
     # =====================
-    # NAVIGAZIONE TOP (UNICA)
+    # NAVIGAZIONE TOP (KEY FIX)
     # =====================
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("⬅️ Precedente"):
+        if st.button("⬅️ Precedente", key="prev_top"):
             if st.session_state.current_question > 0:
                 st.session_state.current_question -= 1
                 st.session_state.checked = False
                 st.rerun()
 
     with col2:
-        if st.button("➡️ Successiva"):
+        if st.button("➡️ Successiva", key="next_top"):
             if st.session_state.current_question < totale - 1:
                 st.session_state.current_question += 1
                 st.session_state.checked = False
@@ -230,9 +201,6 @@ if st.session_state.mode == "studio":
 
     st.markdown("---")
 
-    # =====================
-    # DOMANDA
-    # =====================
     st.markdown(f"### Domanda {idx+1} di {totale}")
 
     st.markdown(
@@ -241,24 +209,14 @@ if st.session_state.mode == "studio":
         unsafe_allow_html=True
     )
 
-    # =====================
-    # MODALITA' LETTURA
-    # =====================
     if st.session_state.study_mode == "Modalità Studio - Lettura":
 
-        for opt in [
-            q["Risposta A"],
-            q["Risposta B"],
-            q["Risposta C"]
-        ]:
+        for opt in [q["Risposta A"], q["Risposta B"], q["Risposta C"]]:
             if opt == q["Risposta A"]:
                 st.markdown(f"**✔️ {opt}**")
             else:
                 st.write(opt)
 
-    # =====================
-    # MODALITA' QUIZ
-    # =====================
     else:
 
         options = st.session_state.options_map[idx]
@@ -270,7 +228,7 @@ if st.session_state.mode == "studio":
             index=None
         )
 
-        if st.button("✅ Invio"):
+        if st.button("✅ Invio", key=f"send_{idx}"):
 
             if choice is not None:
                 st.session_state.answers[idx] = choice
@@ -285,17 +243,10 @@ if st.session_state.mode == "studio":
             st.markdown("---")
 
             for opt in options:
-
                 if opt == correct:
-                    st.markdown(
-                        f"<span class='correct'>✔️ {opt}</span>",
-                        unsafe_allow_html=True
-                    )
+                    st.markdown(f"<span class='correct'>✔️ {opt}</span>", unsafe_allow_html=True)
                 elif opt == user:
-                    st.markdown(
-                        f"<span class='wrong'>❌ {opt}</span>",
-                        unsafe_allow_html=True
-                    )
+                    st.markdown(f"<span class='wrong'>❌ {opt}</span>", unsafe_allow_html=True)
                 else:
                     st.write(opt)
 
@@ -304,49 +255,39 @@ if st.session_state.mode == "studio":
     st.markdown("---")
 
     # =====================
-    # NAVIGAZIONE BOTTOM (UNICA)
+    # NAVIGAZIONE BOTTOM (KEY FIX)
     # =====================
     col3, col4 = st.columns(2)
 
     with col3:
-        if st.button("⬅️ Precedente"):
+        if st.button("⬅️ Precedente", key="prev_bottom"):
             if st.session_state.current_question > 0:
                 st.session_state.current_question -= 1
                 st.session_state.checked = False
                 st.rerun()
 
     with col4:
-        if st.button("➡️ Successiva"):
+        if st.button("➡️ Successiva", key="next_bottom"):
             if st.session_state.current_question < totale - 1:
                 st.session_state.current_question += 1
                 st.session_state.checked = False
                 st.rerun()
 
-    st.stop()                 
+    st.stop()
+
 # =====================
 # TIMER
 # =====================
-if (
-    st.session_state.mode == "tempo"
-    and not st.session_state.finished
-):
+if st.session_state.mode == "tempo" and not st.session_state.finished:
 
     elapsed = time.time() - st.session_state.start_time
-
-    remaining = int(
-        st.session_state.limit - elapsed
-    )
+    remaining = int(st.session_state.limit - elapsed)
 
     if remaining <= 0:
         st.warning("⏰ Tempo scaduto!")
         st.session_state.finished = True
-
     else:
-        st.info(
-            f"⏳ Tempo: "
-            f"{remaining//60:02}:"
-            f"{remaining%60:02}"
-        )
+        st.info(f"⏳ Tempo: {remaining//60:02}:{remaining%60:02}")
 
 # =====================
 # QUIZ
@@ -355,37 +296,20 @@ if not st.session_state.finished:
 
     st.title("📝 Quiz")
 
-    for i, q in enumerate(
-            st.session_state.questions):
+    for i, q in enumerate(st.session_state.questions):
 
-        st.markdown(
-            '<div class="card">',
-            unsafe_allow_html=True
-        )
+        st.markdown('<div class="card">', unsafe_allow_html=True)
 
-        st.markdown(
-            f'<div class="question">'
-            f'{i+1}) {q["Domanda"]}'
-            f'</div>',
-            unsafe_allow_html=True
-        )
+        st.markdown(f'<div class="question">{i+1}) {q["Domanda"]}</div>', unsafe_allow_html=True)
 
         options = st.session_state.options_map[i]
 
-        choice = st.radio(
-            "",
-            options,
-            key=f"q_{i}",
-            index=None
-        )
+        choice = st.radio("", options, key=f"q_{i}", index=None)
 
         if choice is not None:
             st.session_state.answers[i] = choice
 
-        st.markdown(
-            '</div>',
-            unsafe_allow_html=True
-        )
+        st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button("✅ Concludi prova"):
         st.session_state.finished = True
@@ -399,110 +323,54 @@ st.title("📊 Risultato")
 
 score = 0
 
-for i, q in enumerate(
-        st.session_state.questions):
-
-    user = st.session_state.answers.get(i)
-    correct = q["Risposta A"]
-
-    if user == correct:
+for i, q in enumerate(st.session_state.questions):
+    if st.session_state.answers.get(i) == q["Risposta A"]:
         score += 1
 
-# IMMAGINE + TESTO
 if score < 23:
     img = "poco.png"
     msg = "Parliamone! Anche un part time va bene!"
-
-elif 23 <= score <= 26:
+elif score <= 26:
     img = "medio.png"
     msg = "Meh, Meh"
-
 else:
     img = "tanto.png"
     msg = "Come mi rilassa!"
 
-# LAYOUT
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.success(
-        f"Punteggio: "
-        f"{score}/{st.session_state.num}"
-    )
+    st.success(f"Punteggio: {score}/{st.session_state.num}")
     st.markdown(f"**{msg}**")
 
 with col2:
     st.image(img, width=120)
 
-# =====================
-# DETTAGLIO
-# =====================
 st.subheader("📋 Dettaglio risposte")
 
-for i, q in enumerate(
-        st.session_state.questions):
+for i, q in enumerate(st.session_state.questions):
 
-    st.markdown(
-        '<div class="card">',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        f'<div class="question">'
-        f'{i+1}) {q["Domanda"]}'
-        f'</div>',
-        unsafe_allow_html=True
-    )
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown(f'<div class="question">{i+1}) {q["Domanda"]}</div>', unsafe_allow_html=True)
 
     options = st.session_state.options_map[i]
     user = st.session_state.answers.get(i)
     correct = q["Risposta A"]
 
     for opt in options:
-
         if opt == correct:
-
-            st.markdown(
-                f"<span class='correct'>"
-                f"✔️ {opt}"
-                f"</span>",
-                unsafe_allow_html=True
-            )
-
+            st.markdown(f"<span class='correct'>✔️ {opt}</span>", unsafe_allow_html=True)
         elif opt == user:
-
-            st.markdown(
-                f"<span class='wrong'>"
-                f"❌ {opt}"
-                f"</span>",
-                unsafe_allow_html=True
-            )
-
+            st.markdown(f"<span class='wrong'>❌ {opt}</span>", unsafe_allow_html=True)
         else:
             st.write(opt)
 
-    st.markdown(
-        '</div>',
-        unsafe_allow_html=True
-    )
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# =====================
-# RISULTATO FINALE
-# =====================
 st.markdown("---")
-st.subheader("🏁 Risultato finale")
-
-st.success(
-    f"Punteggio finale: "
-    f"{score}/{st.session_state.num}"
-)
-
-st.markdown(f"**{msg}**")
+st.success(f"Punteggio finale: {score}/{st.session_state.num}")
 st.image(img, width=150)
 
-# =====================
-# RIAVVIO
-# =====================
 if st.button("🔄 Nuova prova"):
     reset()
     st.rerun()
