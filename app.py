@@ -494,4 +494,3 @@ st.image(img, width=150)
 if st.button("🔄 Nuova prova"):
     reset()
     st.rerun()
-```
