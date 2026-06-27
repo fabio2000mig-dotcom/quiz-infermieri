@@ -184,15 +184,18 @@ if not st.session_state.started:
 
     st.stop()
 
-# =====================================================
+# =====================
 # MODALITA' STUDIO
-# =====================================================
+# =====================
 if st.session_state.mode == "studio":
 
     st.title("📚 Modalità Studio")
 
     totale = len(st.session_state.questions)
 
+    # =====================
+    # RICERCA DOMANDA
+    # =====================
     ricerca = st.number_input(
         "Vai alla domanda numero",
         min_value=1,
@@ -204,28 +207,13 @@ if st.session_state.mode == "studio":
         st.session_state.current_question = ricerca - 1
         st.session_state.checked = False
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("⬅️ Precedente"):
-            if st.session_state.current_question > 0:
-                st.session_state.current_question -= 1
-                st.session_state.checked = False
-                st.rerun()
-
-    with col2:
-        if st.button("➡️ Successiva"):
-            if st.session_state.current_question < totale - 1:
-                st.session_state.current_question += 1
-                st.session_state.checked = False
-                st.rerun()
-
     idx = st.session_state.current_question
     q = st.session_state.questions[idx]
 
-    st.markdown(
-        f"### Domanda {idx+1} di {totale}"
-    )
+    # =====================
+    # TITOLO DOMANDA
+    # =====================
+    st.markdown(f"### Domanda {idx+1} di {totale}")
 
     st.markdown(
         f'<div class="card">'
@@ -233,38 +221,32 @@ if st.session_state.mode == "studio":
         unsafe_allow_html=True
     )
 
-    # ========================================
-    # STUDIO LETTURA
-    # ========================================
-    if (
-        st.session_state.study_mode
-        == "Modalità Studio - Lettura"
-    ):
+    # =====================
+    # MODALITA' LETTURA
+    # =====================
+    if st.session_state.study_mode == "Modalità Studio - Lettura":
 
         for opt in [
             q["Risposta A"],
             q["Risposta B"],
             q["Risposta C"]
         ]:
-
             if opt == q["Risposta A"]:
-                st.markdown(
-                    f"**✔️ {opt}**"
-                )
+                st.markdown(f"**✔️ {opt}**")
             else:
                 st.write(opt)
 
-    # ========================================
-    # STUDIO QUIZ
-    # ========================================
+    # =====================
+    # MODALITA' QUIZ
+    # =====================
     else:
 
         options = st.session_state.options_map[idx]
 
         choice = st.radio(
-            "",
+            "Seleziona risposta",
             options,
-            key=f"studio_q_{idx}",
+            key=f"studio_{idx}",
             index=None
         )
 
@@ -285,14 +267,12 @@ if st.session_state.mode == "studio":
             for opt in options:
 
                 if opt == correct:
-
                     st.markdown(
                         f"<span class='correct'>✔️ {opt}</span>",
                         unsafe_allow_html=True
                     )
 
                 elif opt == user:
-
                     st.markdown(
                         f"<span class='wrong'>❌ {opt}</span>",
                         unsafe_allow_html=True
@@ -301,16 +281,52 @@ if st.session_state.mode == "studio":
                 else:
                     st.write(opt)
 
-    st.markdown("</div>", unsafe_allow_html=True)
-
+    # =====================
+    # NAVIGAZIONE (SOPRA)
+    # =====================
     st.markdown("---")
 
-    if st.button("🔄 Torna al menu principale"):
-        reset()
-        st.rerun()
+    col1, col2 = st.columns(2)
 
+    with col1:
+        if st.button("⬅️ Precedente"):
+            if st.session_state.current_question > 0:
+                st.session_state.current_question -= 1
+                st.session_state.checked = False
+                st.rerun()
+
+    with col2:
+        if st.button("➡️ Successiva"):
+            if st.session_state.current_question < totale - 1:
+                st.session_state.current_question += 1
+                st.session_state.checked = False
+                st.rerun()
+
+    # =====================
+    # NAVIGAZIONE (SOTTO - NUOVA)
+    # =====================
+    st.markdown("---")
+
+    col3, col4 = st.columns(2)
+
+    with col3:
+        if st.button("⬅️ Precedente (giù)"):
+            if st.session_state.current_question > 0:
+                st.session_state.current_question -= 1
+                st.session_state.checked = False
+                st.rerun()
+
+    with col4:
+        if st.button("➡️ Successiva (giù)"):
+            if st.session_state.current_question < totale - 1:
+                st.session_state.current_question += 1
+                st.session_state.checked = False
+                st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # STOP per non far continuare il resto dell'app
     st.stop()
-
 # =====================
 # TIMER
 # =====================
