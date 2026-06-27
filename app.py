@@ -183,11 +183,6 @@ if not st.session_state.started:
         st.session_state.num = num
 
     st.stop()
-
-
-            for opt in options:
-
-                if opt == correct:
 # =====================
 # MODALITA' STUDIO
 # =====================
