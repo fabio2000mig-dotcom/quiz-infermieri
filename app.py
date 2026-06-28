@@ -98,22 +98,76 @@ if not st.session_state.started:
         st.image("psf.png", width=150)
 
     with col2:
-        st.markdown("<h1 style='margin-bottom:0;'>Postofissatore</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='margin-top:0;'>Il posto fisso è sacro!</p>", unsafe_allow_html=True)
+        st.markdown(
+            "<h1 style='margin-bottom:0;'>Postofissatore</h1>",
+            unsafe_allow_html=True
+        )
 
-    mode = st.radio("Modalità", ["libera", "tempo", "studio"])
+        st.markdown(
+            "<p style='margin-top:0;'>Il posto fisso è sacro!</p>",
+            unsafe_allow_html=True
+        )
+
+    mode = st.radio(
+        "Modalità",
+        ["libera", "tempo", "quiz a scelta", "studio"]
+    )
 
     study_mode = ""
 
     if mode == "studio":
+
         study_mode = st.radio(
             "Tipo modalità studio",
-            ["Modalità Studio - Lettura", "Modalità Studio - Quiz"]
+            [
+                "Modalità Studio - Lettura",
+                "Modalità Studio - Quiz"
+            ]
         )
 
-    if mode in ["libera", "tempo"]:
-        minutes = st.number_input("Durata (minuti)", 1, 180, 10)
-        num = st.number_input("Numero domande", 1, len(df), 30)
+    # Variabili per quiz a scelta
+    inizio_range = 1
+    fine_range = len(df)
+
+    if mode == "quiz a scelta":
+
+        st.subheader("Intervallo domande")
+
+        inizio_range = st.number_input(
+            "Domanda iniziale",
+            min_value=1,
+            max_value=len(df),
+            value=1
+        )
+
+        fine_range = st.number_input(
+            "Domanda finale",
+            min_value=inizio_range,
+            max_value=len(df),
+            value=min(100, len(df))
+        )
+
+    if mode in ["libera", "tempo", "quiz a scelta"]:
+
+        minutes = st.number_input(
+            "Durata (minuti)",
+            1,
+            180,
+            10
+        )
+
+        max_domande = len(df)
+
+        if mode == "quiz a scelta":
+            max_domande = fine_range - inizio_range + 1
+
+        num = st.number_input(
+            "Numero domande",
+            1,
+            max_domande,
+            min(30, max_domande)
+        )
+
     else:
         minutes = 0
         num = len(df)
@@ -125,9 +179,23 @@ if not st.session_state.started:
         st.session_state.current_question = 0
         st.session_state.checked = False
 
+        # Modalità studio
         if mode == "studio":
+
             questions = df.to_dict("records")
+
+        # Modalità quiz a scelta
+        elif mode == "quiz a scelta":
+
+            df_filtrato = df.iloc[
+                inizio_range - 1 : fine_range
+            ]
+
+            questions = df_filtrato.sample(num).to_dict("records")
+
+        # Modalità classiche
         else:
+
             questions = df.sample(num).to_dict("records")
 
         st.session_state.questions = questions
@@ -142,7 +210,10 @@ if not st.session_state.started:
                 q["Risposta C"]
             ]
 
-            if not (mode == "studio" and study_mode == "Modalità Studio - Lettura"):
+            if not (
+                mode == "studio"
+                and study_mode == "Modalità Studio - Lettura"
+            ):
                 random.shuffle(opts)
 
             options_map[i] = opts
@@ -151,7 +222,9 @@ if not st.session_state.started:
         st.session_state.answers = {}
         st.session_state.mode = mode
         st.session_state.study_mode = study_mode
-        st.session_state.limit = minutes * 60 if mode == "tempo" else None
+        st.session_state.limit = (
+            minutes * 60 if mode == "tempo" else None
+        )
         st.session_state.start_time = time.time()
         st.session_state.num = num
 
