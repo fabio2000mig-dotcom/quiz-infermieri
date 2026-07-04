@@ -144,7 +144,7 @@ if not st.session_state.started:
             "Domanda finale",
             min_value=inizio_range,
             max_value=len(df),
-            value=min(100, len(df))
+            value=min(3000, len(df))
         )
 
     if mode in ["libera", "tempo", "quiz a scelta"]:
